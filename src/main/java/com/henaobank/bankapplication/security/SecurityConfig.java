@@ -41,6 +41,7 @@ public class SecurityConfig {
                                 writeJson(res, HttpStatus.FORBIDDEN, "No tiene permisos para este recurso")))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**",
+                                "/api/v1/market/**",
                                 "/error",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",

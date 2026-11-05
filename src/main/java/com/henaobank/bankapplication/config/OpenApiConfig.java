@@ -10,7 +10,8 @@ import org.springframework.context.annotation.Configuration;
 @OpenAPIDefinition(info = @Info(
         title = "BankApplication API",
         version = "1.0",
-        description = "API bancaria: registro, login con JWT, cuentas, depósitos, retiros y transferencias."))
+        description = "API bancaria: registro, login con JWT, cuentas, depósitos, retiros, transferencias "
+                + "e inversiones en criptomonedas (Binance) y acciones (Finnhub)."))
 @SecurityScheme(
         name = "bearerAuth",
         type = SecuritySchemeType.HTTP,

@@ -1,11 +1,14 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: BankApplication
 
   datasource:
-    url: jdbc:mysql://localhost:49703/db_bank?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: root
-    password: root
+    url: ${DB_URL:jdbc:mysql://localhost:49703/db_bank?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -20,3 +23,24 @@ app:
   jwt:
     secret: NDA0RTYzNTI2NjU1NkE1ODZFMzI3MjM1NzUzODc4MkY0MTNGNDQyODQ3MkI0QjYyNTA2NDUzNjc1NjZCNTk3MA==
     expiration-ms: 86400000
+
+  market-data:
+    # API pública de Binance: no requiere clave
+    binance:
+      base-url: https://api.binance.com
+      default-symbols:
+        - BTCUSDT
+        - ETHUSDT
+        - BNBUSDT
+        - SOLUSDT
+        - XRPUSDT
+        - ADAUSDT
+        - DOGEUSDT
+        - LINKUSDT
+        - AVAXUSDT
+        - DOTUSDT
+    # Plan gratuito de Finnhub: https://finnhub.io/register
+    # Defina la variable de entorno FINNHUB_API_KEY antes de iniciar la aplicación.
+    finnhub:
+      base-url: https://finnhub.io/api/v1
+      api-key: ${FINNHUB_API_KEY:}
