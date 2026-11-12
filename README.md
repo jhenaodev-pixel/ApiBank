@@ -7,7 +7,10 @@ inversión en criptomonedas/acciones y un frontend con la identidad visual **OND
 ApiBank/
 ├─ src/                 Backend Spring Boot (API REST)
 ├─ Dockerfile           Imagen multi-stage del backend
-├─ docker-compose.yml   MySQL + backend + frontend
+├─ docker-compose.yml   MySQL + backend + frontend (desarrollo)
+├─ docker-compose.prod.yml  Stack con Caddy y HTTPS (producción)
+├─ Caddyfile            Proxy HTTPS automático
+├─ DEPLOY.md            Guía de despliegue permanente gratuito
 └─ INVERSIONES.md       Documentación de mercado, inversiones y Docker
 
 Documents/
@@ -78,6 +81,17 @@ CORS_ALLOWED_ORIGINS=https://su-frontend.vercel.app,http://localhost:3000
 
 Use `*` solo para demos. El frontend llama directamente a `VITE_API_URL`, sin proxy
 serverless. Si `VITE_API_URL` queda vacío, usa el mismo origen (nginx/Vite).
+
+## URL permanente y HTTPS
+
+Para una URL fija sin depender de tu equipo, siga [`DEPLOY.md`](./DEPLOY.md):
+VM Always Free de Oracle Cloud + `docker-compose.prod.yml` + Caddy con
+certificado de Let's Encrypt y un subdominio gratuito de DuckDNS.
+
+```bash
+cp .env.prod.example .env
+docker compose -f docker-compose.prod.yml up -d --build
+```
 
 ## Desarrollo local
 

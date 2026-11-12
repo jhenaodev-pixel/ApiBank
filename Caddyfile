@@ -1,0 +1,17 @@
+# HTTPS automatico (Let's Encrypt) para el dominio configurado en APP_DOMAIN.
+# Caddy escucha en 80/443 y reenvia todo al nginx del frontend, que a su vez
+# publica /api/ hacia el backend dentro de la red de Docker.
+
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	reverse_proxy frontend:80
+}

@@ -439,3 +439,9 @@ npx vercel@latest deploy --build-env VITE_API_URL=https://algo-random.trycloudfl
 En el panel de Vercel también puede fijar `VITE_API_URL` en *Settings → Environment
 Variables* y volver a desplegar. `vercel.json` solo contiene el build de Vite y el
 fallback SPA; no hay funciones serverless.
+
+### URL permanente
+
+Para dejar de depender de un túnel temporal, siga [`DEPLOY.md`](./DEPLOY.md):
+VM Always Free de Oracle Cloud, `docker-compose.prod.yml`, Caddy con HTTPS
+automático y un subdominio gratuito de DuckDNS.

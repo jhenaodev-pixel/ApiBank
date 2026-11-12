@@ -24,7 +24,7 @@ app:
     # Orígenes permitidos para el frontend (separados por coma). "*" permite cualquiera.
     allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
   jwt:
-    secret: NDA0RTYzNTI2NjU1NkE1ODZFMzI3MjM1NzUzODc4MkY0MTNGNDQyODQ3MkI0QjYyNTA2NDUzNjc1NjZCNTk3MA==
+    secret: ${JWT_SECRET:NDA0RTYzNTI2NjU1NkE1ODZFMzI3MjM1NzUzODc4MkY0MTNGNDQyODQ3MkI0QjYyNTA2NDUzNjc1NjZCNTk3MA==}
     expiration-ms: 86400000
 
   market-data:
