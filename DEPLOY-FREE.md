@@ -129,11 +129,21 @@ deberás usarla en el paso 3.
 7. Verifica:
 
 ```powershell
+Invoke-RestMethod https://onda-api.onrender.com/api/v1/health
+```
+
+Debe devolver `status = UP`. El healthcheck de Render usa ese endpoint porque
+no depende de la base ni de Binance/Finnhub: si dependiera de ellos, un corte del
+proveedor marcaría el despliegue como fallido aunque el backend estuviera vivo.
+
+Para comprobar el mercado (llamada externa a Binance):
+
+```powershell
 Invoke-RestMethod https://onda-api.onrender.com/api/v1/market/crypto | Select-Object -First 1
 ```
 
-Debe devolver cotizaciones de Binance. La primera llamada puede tardar ~1 minuto
-porque el servicio está despertando.
+Debe devolver cotizaciones. La primera llamada puede tardar ~1 minuto porque el
+servicio está despertando.
 
 ---
 
@@ -216,6 +226,7 @@ No hay usuarios hasta que registres el primero desde la web.
 | `Connection refused` en 0 ms al arrancar | `DB_URL` vacía → Spring usa `localhost:49703`, que dentro del contenedor no existe | Carga `DB_URL`, `DB_USERNAME` y `DB_PASSWORD` reales en Render y reinicia |
 | `Unable to determine Dialect without JDBC metadata` | Consecuencia del fallo de conexión, no la causa | Arregla la conexión; este error desaparece solo |
 | `Public Key Retrieval is not allowed` | Falta TLS | Añade `sslMode=REQUIRED` a la URL |
+| `/api/v1/health` responde pero `/market/crypto` falla | Binance devuelve `451` a IPs de EE. UU. | Ya se usa el espejo `data-api.binance.vision`; puedes sobreescribirlo con `BINANCE_BASE_URL` |
 | La base nueva está vacía | Es lo esperado: `ddl-auto: update` crea las tablas al arrancar | Regístrate desde el frontend y aparecerán usuarios/cuentas |
 | Error de CORS en el navegador | Origen distinto al configurado | Copia la URL exacta de Vercel en `CORS_ALLOWED_ORIGINS` |
 | `Access denied for user` | Usuario/clave de la base | Revisa `DB_USERNAME` y `DB_PASSWORD` |

@@ -29,9 +29,10 @@ app:
     expiration-ms: 86400000
 
   market-data:
-    # API pública de Binance: no requiere clave
+    # Espejo de datos de mercado: api.binance.com responde 451 desde IPs de
+    # EE. UU. (Render esta en Oregon). Se puede sobreescribir con BINANCE_BASE_URL.
     binance:
-      base-url: https://api.binance.com
+      base-url: ${BINANCE_BASE_URL:https://data-api.binance.vision}
       default-symbols:
         - BTCUSDT
         - ETHUSDT

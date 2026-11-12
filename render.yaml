@@ -16,7 +16,7 @@ services:
     region: oregon
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    healthCheckPath: /api/v1/market/crypto
+    healthCheckPath: /api/v1/health
     autoDeploy: true
     # 512 MB / 0.1 CPU en el plan free: dejamos mas aire al JVM.
     dockerCommand: java -XX:MaxRAMPercentage=60 -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -jar /app/app.jar
