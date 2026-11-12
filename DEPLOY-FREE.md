@@ -152,13 +152,23 @@ servicio está despertando.
 1. Entra a [vercel.com](https://vercel.com) con GitHub.
 2. **Add New → Project → Import** el repositorio `jhenaodev-pixel/ONDA`.
 3. Framework: **Vite** (se detecta solo). No cambies build ni output.
-4. En **Environment Variables** añade:
+4. El repositorio ya incluye `vercel.json` con un proxy de `/api/*` hacia el
+   backend, así que **no hace falta ninguna variable**:
 
-```text
-VITE_API_URL = https://onda-api.onrender.com
+```json
+{ "source": "/api/:path*", "destination": "https://apibank-9uad.onrender.com/api/:path*" }
 ```
 
-Márcala para *Production*, *Preview* y *Development*.
+Si cambias de backend, edita esa línea y haz push. También puedes omitir el
+proxy y apuntar el frontend directamente con una variable de entorno:
+
+```text
+VITE_API_URL = https://apibank-9uad.onrender.com
+```
+
+Márcala para *Production*, *Preview* y *Development*, y **redespliega**: es una
+variable de build, así que sin redesplegar Vercel sigue sirviendo el bundle
+viejo (el JS no contendrá ninguna URL y las peticiones darán 405).
 
 5. **Deploy**. Obtendrás algo como `https://onda-xxxx.vercel.app`.
 6. Cada cambio futuro en `main` se redespliega solo.
