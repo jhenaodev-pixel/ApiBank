@@ -1,0 +1,37 @@
+# Blueprint de Render para el backend de ONDA.
+#
+# Uso:
+#   1. Render Dashboard -> New -> Blueprint -> conecta el repo ApiBank.
+#   2. Render crea el servicio "onda-api" (plan free) con este archivo.
+#   3. Completa las variables marcadas con sync: false en el panel.
+#
+# La base de datos NO se crea aqui: Render solo ofrece Postgres gratis.
+# Usa un MySQL gratuito externo (TiDB Cloud Starter o Aiven) y pega su
+# cadena de conexion en DB_URL.
+services:
+  - type: web
+    name: onda-api
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/v1/market/crypto
+    autoDeploy: true
+    # 512 MB / 0.1 CPU en el plan free: dejamos mas aire al JVM.
+    dockerCommand: java -XX:MaxRAMPercentage=60 -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -jar /app/app.jar
+    envVars:
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FINNHUB_API_KEY
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: JPA_SHOW_SQL
+        value: "false"

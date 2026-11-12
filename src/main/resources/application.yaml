@@ -1,5 +1,6 @@
 server:
-  port: 8080
+  # Render/Cloud Run inyectan PORT; en local se mantiene 8080.
+  port: ${PORT:8080}
 
 spring:
   application:
@@ -14,7 +15,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: ${JPA_SHOW_SQL:true}
     properties:
       hibernate:
         format_sql: true

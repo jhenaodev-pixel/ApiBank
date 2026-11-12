@@ -8,9 +8,11 @@ ApiBank/
 ├─ src/                 Backend Spring Boot (API REST)
 ├─ Dockerfile           Imagen multi-stage del backend
 ├─ docker-compose.yml   MySQL + backend + frontend (desarrollo)
-├─ docker-compose.prod.yml  Stack con Caddy y HTTPS (producción)
+├─ docker-compose.prod.yml  Stack con Caddy y HTTPS (VM propia)
 ├─ Caddyfile            Proxy HTTPS automático
-├─ DEPLOY.md            Guía de despliegue permanente gratuito
+├─ render.yaml          Blueprint para desplegar el backend en Render
+├─ DEPLOY-FREE.md       Demo pública sin VM ni dominio (Vercel + Render + MySQL)
+├─ DEPLOY.md            Guía en VM propia con dominio (Oracle Cloud + Caddy)
 └─ INVERSIONES.md       Documentación de mercado, inversiones y Docker
 
 Documents/
@@ -84,9 +86,12 @@ serverless. Si `VITE_API_URL` queda vacío, usa el mismo origen (nginx/Vite).
 
 ## URL permanente y HTTPS
 
-Para una URL fija sin depender de tu equipo, siga [`DEPLOY.md`](./DEPLOY.md):
-VM Always Free de Oracle Cloud + `docker-compose.prod.yml` + Caddy con
-certificado de Let's Encrypt y un subdominio gratuito de DuckDNS.
+**Sin VM ni dominio (recomendado si no tienes servidor):** siga
+[`DEPLOY-FREE.md`](./DEPLOY-FREE.md) — frontend en Vercel, backend en Render y MySQL
+gratuito, todo con URLs HTTPS del proveedor y sin tarjeta.
+
+**Con VM y dominio propios:** siga [`DEPLOY.md`](./DEPLOY.md) — VM Always Free de
+Oracle Cloud + `docker-compose.prod.yml` + Caddy con Let's Encrypt.
 
 ```bash
 cp .env.prod.example .env

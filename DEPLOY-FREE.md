@@ -1,0 +1,217 @@
+# Demo pública sin VM ni dominio (100% gratis)
+
+Ruta recomendada si no tienes servidor ni dominio: cada pieza vive en un servicio
+gratuito y obtienes URLs HTTPS del propio proveedor.
+
+```
+Navegador
+   │  https://onda-xxxx.vercel.app        (frontend, CDN)
+   ▼
+Vercel  ──fetch──►  https://onda-api.onrender.com   (backend Spring Boot, Docker)
+                              │
+                              ▼
+                    MySQL gratuito (TiDB Cloud Starter / Aiven)
+```
+
+**Coste:** 0 USD. **Dominio:** no hace falta. **Tarjeta:** no hace falta para el plan
+gratuito de Render ni para el de TiDB.
+
+## Qué esperar de este montaje
+
+Es una demo pública, no producción:
+
+- El backend **se duerme tras 15 minutos sin tráfico**. La primera visita después
+  tarda ~1 minuto en despertar (Render muestra su propia pantalla de carga).
+- El plan free de Render da **0.1 CPU y 512 MB**: suficiente para demostrar, lento
+  para uso real.
+- La base gratuita tiene **límites de almacenamiento y de operaciones**.
+- Las URLs son del proveedor (`*.onrender.com`, `*.vercel.app`).
+
+Si más adelante quieres algo estable 24/7 y con dominio propio, la ruta es
+[`DEPLOY.md`](./DEPLOY.md) (Oracle Cloud + Caddy).
+
+---
+
+## Paso 1. Base de datos MySQL gratuita
+
+Render solo regala **Postgres**, y este proyecto usa **MySQL**. Usa un MySQL
+gestionado gratuito:
+
+### Opción A: TiDB Cloud Starter (recomendada)
+
+1. Crea cuenta en [tidbcloud.com](https://tidbcloud.com) (login con GitHub o Google).
+2. **Create Cluster → Starter** (o *Serverless*), elige la región más cercana.
+3. Abre el **SQL Editor** y crea la base:
+
+```sql
+CREATE DATABASE IF NOT EXISTS db_bank;
+```
+
+4. Pulsa **Connect** y copia los datos de conexión:
+   - Host: `gateway01.xxxx.prod.aws.tidbcloud.com`
+   - Puerto: `4000`
+   - Usuario: `2xxxxxxx.root`
+   - Contraseña: la que muestra el panel
+5. Arma la cadena JDBC (TiDB exige TLS):
+
+```text
+jdbc:mysql://HOST:4000/db_bank?sslMode=REQUIRED&serverTimezone=UTC&characterEncoding=utf8
+```
+
+> `sslMode=REQUIRED` cifra la conexión sin exigir un certificado en el JVM.
+> Si prefieres validar el certificado, usa `sslMode=VERIFY_IDENTITY`.
+
+### Opción B: Aiven for MySQL (plan gratuito)
+
+1. Crea el servicio MySQL gratuito en [aiven.io](https://aiven.io).
+2. En **Overview** copia *Host*, *Port*, *User*, *Password* y descarga el
+   certificado `ca.pem` si vas a usar `sslMode=VERIFY_IDENTITY`.
+3. En **Allowed IP addresses** añade `0.0.0.0/0` (Render no tiene IP fija).
+4. Cadena JDBC:
+
+```text
+jdbc:mysql://HOST:PORT/db_bank?sslMode=REQUIRED&serverTimezone=UTC
+```
+
+Crea la base `db_bank` desde la consola de Aiven o con cualquier cliente MySQL.
+
+---
+
+## Paso 2. Backend en Render
+
+1. Crea cuenta en [render.com](https://dashboard.render.com/register) con GitHub.
+2. **New → Blueprint**.
+3. Conecta el repositorio `jhenaodev-pixel/ApiBank` (rama `main`).
+   Render lee `render.yaml` y propone el servicio `onda-api`.
+4. Completa las variables que el blueprint deja vacías:
+
+| Variable | Valor |
+|----------|-------|
+| `DB_URL` | `jdbc:mysql://HOST:4000/db_bank?sslMode=REQUIRED&serverTimezone=UTC` |
+| `DB_USERNAME` | usuario de la base |
+| `DB_PASSWORD` | contraseña de la base |
+| `FINNHUB_API_KEY` | opcional, para acciones |
+| `CORS_ALLOWED_ORIGINS` | se completa en el paso 4 |
+
+`JWT_SECRET` lo genera Render automáticamente. No lo toques.
+
+5. **Apply**. El primer build tarda 5–10 minutos (compila con Maven).
+6. Cuando el estado sea **Live**, anota la URL, por ejemplo:
+
+```text
+https://onda-api.onrender.com
+```
+
+Si el nombre `onda-api` ya está ocupado, Render te pedirá otro; la URL cambiará y
+deberás usarla en el paso 3.
+
+7. Verifica:
+
+```powershell
+Invoke-RestMethod https://onda-api.onrender.com/api/v1/market/crypto | Select-Object -First 1
+```
+
+Debe devolver cotizaciones de Binance. La primera llamada puede tardar ~1 minuto
+porque el servicio está despertando.
+
+---
+
+## Paso 3. Frontend en Vercel
+
+1. Entra a [vercel.com](https://vercel.com) con GitHub.
+2. **Add New → Project → Import** el repositorio `jhenaodev-pixel/ONDA`.
+3. Framework: **Vite** (se detecta solo). No cambies build ni output.
+4. En **Environment Variables** añade:
+
+```text
+VITE_API_URL = https://onda-api.onrender.com
+```
+
+Márcala para *Production*, *Preview* y *Development*.
+
+5. **Deploy**. Obtendrás algo como `https://onda-xxxx.vercel.app`.
+6. Cada cambio futuro en `main` se redespliega solo.
+
+> Si ya tenías un deployment temporal, impórtalo como proyecto para conservarlo:
+> el panel de Vercel permite reclamar el deployment con el enlace `claim`.
+
+---
+
+## Paso 4. Cerrar CORS
+
+Vuelve a Render → servicio `onda-api` → **Environment**:
+
+```text
+CORS_ALLOWED_ORIGINS = https://onda-xxxx.vercel.app
+```
+
+Guarda. Render reinicia el servicio automáticamente.
+
+Reglas:
+
+- Sin barra final y con `https://`.
+- Para varios orígenes, sepáralos con coma:
+  `https://onda.vercel.app,https://onda-git-main-usuario.vercel.app`
+- Deja `*` solo mientras pruebas; permite que cualquier web llame a tu API.
+
+---
+
+## Paso 5. Probar
+
+1. Abre `https://onda-xxxx.vercel.app`.
+2. Crea una cuenta nueva (recibe $1,000 de bienvenida).
+3. Verifica:
+   - Resumen con saldo y movimientos.
+   - `/operaciones` con la cuenta creada.
+   - `/inversiones` con cripto en vivo.
+   - Búsqueda de `AAPL` si configuraste Finnhub.
+4. Recarga una ruta profunda (`/analiticas`) para confirmar el fallback SPA.
+
+Usuarios existentes en la base nueva:
+
+```text
+No hay usuarios hasta que registres el primero desde la web.
+```
+
+---
+
+## Actualizaciones
+
+| Cambio | Qué hacer |
+|--------|-----------|
+| Backend | `git push` a `main` → Render reconstruye solo |
+| Frontend | `git push` a `main` → Vercel reconstruye solo |
+| Variables | Panel del proveedor → guardar → reinicio automático |
+
+---
+
+## Problemas frecuentes
+
+| Síntoma | Causa | Solución |
+|---------|-------|----------|
+| Primera carga de 1 minuto | El servicio free está dormido | Es normal; espera o haz una petición previa |
+| `502` o `Application failed to respond` | El backend no arrancó | Revisa **Logs** en Render |
+| `Communications link failure` | `DB_URL` incorrecto o sin TLS | Usa `sslMode=REQUIRED` y verifica host/puerto |
+| Error de CORS en el navegador | Origen distinto al configurado | Copia la URL exacta de Vercel en `CORS_ALLOWED_ORIGINS` |
+| `Access denied for user` | Usuario/clave de la base | Revisa `DB_USERNAME` y `DB_PASSWORD` |
+| Render suspende el servicio | Se agotaron las 750 horas free del mes | Espera al siguiente mes o pasa a plan pago |
+| Build falla en Maven | Memoria del build | Reintenta; Render da más RAM en build que en runtime |
+
+Si el backend muere al arrancar por memoria, baja el consumo en `render.yaml`:
+
+```yaml
+dockerCommand: java -XX:MaxRAMPercentage=50 -XX:+UseSerialGC -jar /app/app.jar
+```
+
+---
+
+## Resumen de URLs
+
+| Pieza | URL | Panel |
+|-------|-----|-------|
+| Frontend | `https://onda-xxxx.vercel.app` | vercel.com |
+| Backend | `https://onda-api.onrender.com` | dashboard.render.com |
+| Base de datos | host interno del proveedor | tidbcloud.com / aiven.io |
+
+Con esto tienes la web pública, accesible desde cualquier dispositivo, sin tu PC
+encendido y sin pagar nada.

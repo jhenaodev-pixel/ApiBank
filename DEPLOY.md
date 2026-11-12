@@ -5,6 +5,11 @@ Guía para publicar ONDA con una URL fija, HTTPS automático y sin depender de t
 **Stack:** Oracle Cloud Always Free (VM Ubuntu) + Docker Compose + Caddy + DuckDNS.
 **Coste:** 0 USD. **Tiempo:** 30–45 minutos la primera vez.
 
+> **¿No tienes VM ni dominio?** Usa [`DEPLOY-FREE.md`](./DEPLOY-FREE.md):
+> frontend en Vercel + backend en Render + MySQL gratuito, sin tarjeta y sin
+> configurar servidores. Esta guía es para cuando quieras control total y una URL
+> con tu propio dominio.
+
 ```
 Internet
    │  https://onda-demo.duckdns.org  (TLS de Let's Encrypt)
