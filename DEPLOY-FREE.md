@@ -227,6 +227,8 @@ No hay usuarios hasta que registres el primero desde la web.
 | `Unable to determine Dialect without JDBC metadata` | Consecuencia del fallo de conexión, no la causa | Arregla la conexión; este error desaparece solo |
 | `Public Key Retrieval is not allowed` | Falta TLS | Añade `sslMode=REQUIRED` a la URL |
 | `/api/v1/health` responde pero `/market/crypto` falla | Binance devuelve `451` a IPs de EE. UU. | Ya se usa el espejo `data-api.binance.vision`; puedes sobreescribirlo con `BINANCE_BASE_URL` |
+| `Table 'db_bank.a1_0' doesn't exist` | TiDB resuelve el alias que Hibernate pone en el `SELECT ... FOR UPDATE` (`from accounts a1_0 ... for update`) como si fuera una tabla | Ya se usa SQL nativo sin alias en `findByAccountNumberForUpdate` y `findForUpdate`. Si reaparece, busca `@Lock(PESSIMISTIC_WRITE)` y cámbialo por `FOR UPDATE` nativo |
+| Los `INSERT` y las lecturas funcionan pero depositar/transferir da `500` | Ese alias solo aparece en las consultas con bloqueo | Mismo arreglo que la fila anterior |
 | La base nueva está vacía | Es lo esperado: `ddl-auto: update` crea las tablas al arrancar | Regístrate desde el frontend y aparecerán usuarios/cuentas |
 | Error de CORS en el navegador | Origen distinto al configurado | Copia la URL exacta de Vercel en `CORS_ALLOWED_ORIGINS` |
 | `Access denied for user` | Usuario/clave de la base | Revisa `DB_USERNAME` y `DB_PASSWORD` |
