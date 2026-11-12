@@ -60,6 +60,25 @@ las acciones no están disponibles.
 - Panel de analíticas: asignación, flujo neto mensual y ranking de posiciones.
 - Diseño responsive con navegación tipo píldora y tarjetas redondeadas.
 
+## Publicar el frontend en Vercel
+
+Vercel solo puede servir el frontend (Vite/estático). El backend Spring Boot + MySQL
+debe seguir ejecutándose aparte, por ejemplo en Docker sobre una VM o en su equipo.
+
+1. Exponga el backend por HTTPS (Cloudflare Tunnel para una demo):
+   `cloudflared tunnel --url http://localhost:8080`.
+2. En Vercel, importe el repositorio del frontend (`ONDA`) y defina la variable de
+   entorno de build `VITE_API_URL` con la URL pública del backend.
+3. El backend acepta ese origen gracias a CORS configurable:
+
+```dotenv
+# ApiBank/.env o variable del contenedor
+CORS_ALLOWED_ORIGINS=https://su-frontend.vercel.app,http://localhost:3000
+```
+
+Use `*` solo para demos. El frontend llama directamente a `VITE_API_URL`, sin proxy
+serverless. Si `VITE_API_URL` queda vacío, usa el mismo origen (nginx/Vite).
+
 ## Desarrollo local
 
 Backend (requiere MySQL en `localhost:49703` o ajustar `DB_URL`):

@@ -410,3 +410,32 @@ cd C:\Users\juanp\Documents\ApiBank
 docker compose build frontend
 docker compose up -d frontend
 ```
+
+### Desplegar el frontend en Vercel
+
+Vercel solo ejecuta el frontend. El backend Spring Boot + MySQL sigue en Docker y se
+expone por HTTPS; el navegador llama a esa URL directamente (CORS, sin proxy).
+
+1. Exponga el backend:
+
+```powershell
+cloudflared tunnel --url http://localhost:8080
+# https://algo-random.trycloudflare.com
+```
+
+2. Permita ese frontend en el backend (`ApiBank/.env`):
+
+```dotenv
+CORS_ALLOWED_ORIGINS=https://su-frontend.vercel.app
+```
+
+3. Despliegue con la URL del backend como variable de build:
+
+```powershell
+cd C:\Users\juanp\Documents\onda-frontend
+npx vercel@latest deploy --build-env VITE_API_URL=https://algo-random.trycloudflare.com
+```
+
+En el panel de Vercel también puede fijar `VITE_API_URL` en *Settings → Environment
+Variables* y volver a desplegar. `vercel.json` solo contiene el build de Vite y el
+fallback SPA; no hay funciones serverless.
