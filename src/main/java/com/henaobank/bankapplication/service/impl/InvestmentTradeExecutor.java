@@ -52,7 +52,7 @@ public class InvestmentTradeExecutor {
         }
         account.setBalance(account.getBalance().subtract(total));
 
-        InvestmentPosition position = positionRepository.findForUpdate(userId, symbol, assetType)
+        InvestmentPosition position = positionRepository.findForUpdate(userId, symbol, assetType.name())
                 .orElseGet(() -> InvestmentPosition.builder()
                         .user(account.getUser())
                         .symbol(symbol)
@@ -100,7 +100,7 @@ public class InvestmentTradeExecutor {
 
         Account account = lockAccount(accountNumber, userId);
 
-        InvestmentPosition position = positionRepository.findForUpdate(userId, symbol, assetType)
+        InvestmentPosition position = positionRepository.findForUpdate(userId, symbol, assetType.name())
                 .orElseThrow(() -> new BadRequestException("No tienes una posición abierta en " + symbol));
 
         if (position.getQuantity().compareTo(quantity) < 0) {
