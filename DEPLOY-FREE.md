@@ -39,19 +39,25 @@ gestionado gratuito:
 
 ### Opción A: TiDB Cloud Starter (recomendada)
 
-1. Crea cuenta en [tidbcloud.com](https://tidbcloud.com) (login con GitHub o Google).
-2. **Create Cluster → Starter** (o *Serverless*), elige la región más cercana.
-3. Abre el **SQL Editor** y crea la base:
+1. Crea cuenta en [tidbcloud.com](https://tidbcloud.com) (login con GitHub, Google
+   o email). No pide tarjeta.
+2. En **My TiDB** pulsa **Create Resource** → plan **Starter** → *Compatibility
+   Mode*: **MySQL Compatible**. Ponle nombre (`onda`), elige la región AWS más
+   cercana al backend de Render (si Render está en *oregon*, usa `us-west-2`; si
+   no aparece, `us-east-1` funciona igual) y deja el **spending limit en 0** para
+   que siga siendo gratis. Pulsa **Create** (~30 s).
+3. Abre la instancia → **Connect**:
+   - *Connection Type*: **Public**.
+   - Si no hay contraseña, pulsa **Generate Password** y guárdala: **solo se
+     muestra una vez**.
+   - Copia *Host*, *Port* (4000), *User* y *Password*. El usuario **no** es
+     `root` a secas: incluye el prefijo de la instancia, tipo `3KxAbc1234.root`.
+4. En la misma ventana elige **Web SQL Shell** (o *SQL Editor*) y crea la base:
 
 ```sql
 CREATE DATABASE IF NOT EXISTS db_bank;
 ```
 
-4. Pulsa **Connect** y copia los datos de conexión:
-   - Host: `gateway01.xxxx.prod.aws.tidbcloud.com`
-   - Puerto: `4000`
-   - Usuario: `2xxxxxxx.root`
-   - Contraseña: la que muestra el panel
 5. Arma la cadena JDBC (TiDB exige TLS):
 
 ```text
@@ -60,20 +66,35 @@ jdbc:mysql://HOST:4000/db_bank?sslMode=REQUIRED&serverTimezone=UTC&characterEnco
 
 > `sslMode=REQUIRED` cifra la conexión sin exigir un certificado en el JVM.
 > Si prefieres validar el certificado, usa `sslMode=VERIFY_IDENTITY`.
+>
+> Las instancias Starter permiten **todas las IPs por defecto**
+> (`Allow_all_public_connections`), así que no hay que configurar firewall:
+> Render no tiene IP de salida fija y no hace falta añadir ninguna regla.
 
-### Opción B: Aiven for MySQL (plan gratuito)
+6. Comprueba que el host responde antes de tocar Render (en Windows):
 
-1. Crea el servicio MySQL gratuito en [aiven.io](https://aiven.io).
-2. En **Overview** copia *Host*, *Port*, *User*, *Password* y descarga el
-   certificado `ca.pem` si vas a usar `sslMode=VERIFY_IDENTITY`.
-3. En **Allowed IP addresses** añade `0.0.0.0/0` (Render no tiene IP fija).
-4. Cadena JDBC:
-
-```text
-jdbc:mysql://HOST:PORT/db_bank?sslMode=REQUIRED&serverTimezone=UTC
+```powershell
+Test-NetConnection gateway01.xxxx.prod.aws.tidbcloud.com -Port 4000
 ```
 
-Crea la base `db_bank` desde la consola de Aiven o con cualquier cliente MySQL.
+`TcpTestSucceeded : True` significa que hay alguien escuchando. Si sale `False`,
+el host o el puerto están mal copiados y Render fallará igual con
+`Connection refused`.
+
+### Opción B: otros MySQL gratuitos (no recomendado)
+
+El **plan gratuito de MySQL en Aiven ya está retirado** (se apaga el 21/12/2026),
+así que no lo uses para algo nuevo. Alternativas y sus pegas:
+
+| Proveedor | Pegas |
+|-----------|-------|
+| Aiven MySQL | ya no tiene plan gratis |
+| PlanetScale | pide tarjeta |
+| db4free.net | sin SLA, borran bases inactivas, TLS opcional |
+| freesqldatabase.com | la base caduca a los 30 días |
+
+TiDB Cloud Starter es la única opción gratuita, sin tarjeta y sin caducidad que
+además es MySQL puro, así que el código no cambia.
 
 ---
 
@@ -192,6 +213,10 @@ No hay usuarios hasta que registres el primero desde la web.
 | Primera carga de 1 minuto | El servicio free está dormido | Es normal; espera o haz una petición previa |
 | `502` o `Application failed to respond` | El backend no arrancó | Revisa **Logs** en Render |
 | `Communications link failure` | `DB_URL` incorrecto o sin TLS | Usa `sslMode=REQUIRED` y verifica host/puerto |
+| `Connection refused` en 0 ms al arrancar | `DB_URL` vacía → Spring usa `localhost:49703`, que dentro del contenedor no existe | Carga `DB_URL`, `DB_USERNAME` y `DB_PASSWORD` reales en Render y reinicia |
+| `Unable to determine Dialect without JDBC metadata` | Consecuencia del fallo de conexión, no la causa | Arregla la conexión; este error desaparece solo |
+| `Public Key Retrieval is not allowed` | Falta TLS | Añade `sslMode=REQUIRED` a la URL |
+| La base nueva está vacía | Es lo esperado: `ddl-auto: update` crea las tablas al arrancar | Regístrate desde el frontend y aparecerán usuarios/cuentas |
 | Error de CORS en el navegador | Origen distinto al configurado | Copia la URL exacta de Vercel en `CORS_ALLOWED_ORIGINS` |
 | `Access denied for user` | Usuario/clave de la base | Revisa `DB_USERNAME` y `DB_PASSWORD` |
 | Render suspende el servicio | Se agotaron las 750 horas free del mes | Espera al siguiente mes o pasa a plan pago |
@@ -211,7 +236,7 @@ dockerCommand: java -XX:MaxRAMPercentage=50 -XX:+UseSerialGC -jar /app/app.jar
 |-------|-----|-------|
 | Frontend | `https://onda-xxxx.vercel.app` | vercel.com |
 | Backend | `https://onda-api.onrender.com` | dashboard.render.com |
-| Base de datos | host interno del proveedor | tidbcloud.com / aiven.io |
+| Base de datos | `gateway01.xxxx.prod.aws.tidbcloud.com:4000` | tidbcloud.com |
 
 Con esto tienes la web pública, accesible desde cualquier dispositivo, sin tu PC
 encendido y sin pagar nada.
